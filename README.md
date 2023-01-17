@@ -2,9 +2,9 @@
 
 This is a simple node.js web app to simulate CPU activity. 
 
-By default the simulation will opts for one instance (thread) at 50% of CPU load.
+By default, the simulation will opts for one instance (thread) at 50% of CPU load.
 
-If you want to change them you can set two environement variables:
+If you want to change them you can set two environment variables:
 * LOAD_FACTOR => allows you to set the CPU load you want (between 0 and 1).
 * INSTANCES => allows you to set the number of threads that should be impacted.
 
@@ -21,6 +21,8 @@ Clone the project and then run `node index.js` on your terminal.
 If you want to change the default cpu load and the number of threads with for example 80% load and 3 threads simply run: `LOAD_FACTOR=0.8 INSTANCES=3 node index.js`.
 
 In order to start simulating CPU activity go to `http://localhost:8080/start` to start the process.
+
+You can also define custom load factor and number of instances using: `http://localhost:8080/start?load_factor=0.8&instances=5`
 
 If you want to stop the CPU simulation process go to `http://localhost:8080/stop`.
 

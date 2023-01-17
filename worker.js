@@ -1,7 +1,5 @@
 const {workerData} = require('worker_threads');
 
-const LOAD_FACTOR = workerData.LOAD_FACTOR;
-
 function blockCpu(ms) {
   const now = new Date().getTime();
   let result = 0;
@@ -11,9 +9,13 @@ function blockCpu(ms) {
   }
 }
 
-function start() {
-  blockCpu(1000*LOAD_FACTOR);
-  setTimeout(start, 1000* (1 - LOAD_FACTOR));
+function start(loadFactor) {
+  const cycle = () => {
+    blockCpu(1000*loadFactor);
+    setTimeout(cycle, 1000* (1 - loadFactor));
+  }
+
+  cycle();
 }
 
-start();
+start(workerData.loadFactor);

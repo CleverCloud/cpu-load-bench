@@ -4,29 +4,41 @@ const http = require('http');
 const {Worker} = require('worker_threads');
 const url = require('url');
 
-const PFACTOR = process.env.LOAD_FACTOR || 0.5;
-const PINSTANCES = process.env.INSTANCES || 1;
-const LOAD_FACTOR = (PFACTOR > 0 &&  PFACTOR <= 1) ? PFACTOR : 0.5;
-const INSTANCES = (PINSTANCES >= 1) ? PINSTANCES : 1;
+const LOAD_FACTOR = process.env.LOAD_FACTOR || 0.5;
+const INSTANCES = process.env.INSTANCES || 1;
 const PORT = process.env.PORT || 8080;
 let workers = [];
 
 let shouldRun = false;
+let loadFactor;
+let instances;
+
+function validLoadFactor(value) {
+  return (value > 0 && value <= 1) ? value : 0.5;
+}
+function validInstances(value) {
+  return (value >= 1) ? value : 1;
+}
 
 const server = http.createServer((req, res) => {
-  if(req.url === '/start') {
+  const currentUrl = url.parse(req.url,true)
+  if(currentUrl.pathname === '/start') {
     if(shouldRun) return res.end('already started, use /stop if you want to stop the process.');
+
+    loadFactor = validLoadFactor(currentUrl.query.load_factor ?? LOAD_FACTOR);
+    instances = validInstances(currentUrl.query.instances ?? INSTANCES);
+
     shouldRun = true;
-    for(let i = 0; i < INSTANCES; i++) workers.push(new Worker('./worker.js', {workerData: {LOAD_FACTOR}}));
-    res.end(`Process started with: ${INSTANCES} threads and a ${LOAD_FACTOR*100}% LOAD FACTOR.`);
+    for(let i = 0; i < instances; i++) workers.push(new Worker('./worker.js', {workerData: {loadFactor}}));
+    res.end(`Process started with: ${instances} threads and a ${loadFactor*100}% LOAD FACTOR.`);
   }
-  else if (req.url === '/stop') {
+  else if (currentUrl.pathname === '/stop') {
     if(!shouldRun) res.end('not started, use /start if you want to start the process.');
     shouldRun = false;
     workers.forEach((worker) => worker.terminate());
     // Reset workers array
     workers = [];
-    res.end(`Process stopped that ran on: ${INSTANCES} threads and a ${LOAD_FACTOR*100}% LOAD FACTOR.`)
+    res.end(`Process stopped that ran on: ${instances} threads and a ${loadFactor*100}% LOAD FACTOR.`)
   } else {
     res.end('Use either /start or /stop to start/stop the process.');
   }
